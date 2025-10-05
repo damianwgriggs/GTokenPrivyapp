@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Digital Valet</title>
+    <title>The Digital Valet (Magic Link)</title>
+    <script src="https://auth.magic.link/sdk"></script>
     <style>
         body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #f0f2f5; }
-        .container { text-align: center; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .container { text-align: center; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 400px; }
         h1 { color: #333; }
         p { color: #666; }
-        button { background-color: #007bff; color: white; border: none; padding: 15px 30px; border-radius: 5px; font-size: 16px; cursor: pointer; transition: background-color: 0.3s; }
-        button:hover { background-color: #0056b3; }
+        input { width: 80%; padding: 10px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; }
+        button { background-color: #6851ff; color: white; border: none; padding: 15px 30px; border-radius: 5px; font-size: 16px; cursor: pointer; transition: background-color 0.3s; width: 88%; }
+        button:hover { background-color: #4a38cc; }
         #wallet-info { margin-top: 20px; font-size: 14px; color: #444; word-wrap: break-word; white-space: pre-wrap; }
     </style>
 </head>
@@ -19,35 +21,41 @@
     <div class="container">
         <h1>Welcome to the Kingdom</h1>
         <p>Log in with your email to get started.</p>
+        <input type="email" id="email-input" placeholder="Enter your email" />
         <button id="login-button">Login with Email</button>
         <div id="wallet-info"></div>
     </div>
 
-    <script type="module">
-        import {PrivyClient} from './privy.js';
+    <script>
+        // 2. Initialize Magic with your API Key
+        const magic = new Magic('pk_live_93CEE252A35A420B');
 
-        // --- CONFIGURATION ---
-        const YOUR_APP_ID = 'cmge3gac902f7l40cdzy6hzrv';
-        // ---------------------
-
-        const privy = new PrivyClient({appId: YOUR_APP_ID});
         const loginButton = document.getElementById('login-button');
+        const emailInput = document.getElementById('email-input');
         const walletInfoDiv = document.getElementById('wallet-info');
+        const loginContainer = document.querySelector('.container');
 
         loginButton.addEventListener('click', async () => {
-            try {
-                // Log the user in
-                await privy.login();
-                
-                // Get the user's embedded wallet address
-                const user = await privy.user();
-                const walletAddress = user.wallet?.address;
+            const email = emailInput.value;
+            if (!email) {
+                alert('Please enter your email address.');
+                return;
+            }
 
-                // Update the UI to show the wallet address
-                if (walletAddress) {
-                    loginButton.style.display = 'none'; // Hide login button
-                    walletInfoDiv.innerText = `Success! Your invisible wallet has been created:\n${walletAddress}`;
-                }
+            try {
+                // 3. Trigger the magic link login
+                await magic.auth.loginWithMagicLink({ email: email });
+
+                // On successful login, get user metadata
+                const userMetadata = await magic.user.getMetadata();
+                
+                // Display the user's wallet address
+                loginContainer.innerHTML = `
+                    <h1>Login Successful!</h1>
+                    <div id="wallet-info">
+                        <p>Your invisible wallet has been created:</p>
+                        <p><strong>${userMetadata.publicAddress}</strong></p>
+                    </div>`;
 
             } catch (error) {
                 console.error('Login failed:', error);
