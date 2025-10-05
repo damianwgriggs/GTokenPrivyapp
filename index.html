@@ -14,7 +14,7 @@
         #wallet-info { margin-top: 20px; font-size: 14px; color: #444; word-wrap: break-word; white-space: pre-wrap; }
     </style>
     
-    <script src="https://embed.privy.io/sdk-v2.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@privy-io/privy-browser@1.14.0/dist/index.js"></script>
 
 </head>
 <body>
@@ -31,7 +31,6 @@
         const YOUR_APP_ID = 'cmge3gac902f7l40cdzy6hzrv';
         // ---------------------
 
-        // CHANGE #2: Initialize the client from the window object
         const privy = new window.Privy.PrivyClient({appId: YOUR_APP_ID});
         
         const loginButton = document.getElementById('login-button');
