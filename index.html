@@ -13,9 +13,6 @@
         button:hover { background-color: #0056b3; }
         #wallet-info { margin-top: 20px; font-size: 14px; color: #444; word-wrap: break-word; white-space: pre-wrap; }
     </style>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@privy-io/privy-browser@1.14.0/dist/index.js"></script>
-
 </head>
 <body>
 
@@ -26,13 +23,14 @@
         <div id="wallet-info"></div>
     </div>
 
-    <script>
+    <script type="module">
+        import {PrivyClient} from 'https://esm.sh/@privy-io/privy-browser@1.14.0';
+
         // --- CONFIGURATION ---
         const YOUR_APP_ID = 'cmge3gac902f7l40cdzy6hzrv';
         // ---------------------
 
-        const privy = new window.Privy.PrivyClient({appId: YOUR_APP_ID});
-        
+        const privy = new PrivyClient({appId: YOUR_APP_ID});
         const loginButton = document.getElementById('login-button');
         const walletInfoDiv = document.getElementById('wallet-info');
 
