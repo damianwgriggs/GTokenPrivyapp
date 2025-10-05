@@ -9,7 +9,7 @@
         .container { text-align: center; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         h1 { color: #333; }
         p { color: #666; }
-        button { background-color: #007bff; color: white; border: none; padding: 15px 30px; border-radius: 5px; font-size: 16px; cursor: pointer; transition: background-color 0.3s; }
+        button { background-color: #007bff; color: white; border: none; padding: 15px 30px; border-radius: 5px; font-size: 16px; cursor: pointer; transition: background-color: 0.3s; }
         button:hover { background-color: #0056b3; }
         #wallet-info { margin-top: 20px; font-size: 14px; color: #444; word-wrap: break-word; white-space: pre-wrap; }
     </style>
@@ -24,7 +24,7 @@
     </div>
 
     <script type="module">
-        import {PrivyClient} from 'https://unpkg.com/@privy-io/privy-browser@1.14.0?module';
+        import {PrivyClient} from './privy.js';
 
         // --- CONFIGURATION ---
         const YOUR_APP_ID = 'cmge3gac902f7l40cdzy6hzrv';
@@ -46,7 +46,7 @@
                 // Update the UI to show the wallet address
                 if (walletAddress) {
                     loginButton.style.display = 'none'; // Hide login button
-                    walletInfoInfo.innerText = `Success! Your invisible wallet has been created:\n${walletAddress}`;
+                    walletInfoDiv.innerText = `Success! Your invisible wallet has been created:\n${walletAddress}`;
                 }
 
             } catch (error) {
