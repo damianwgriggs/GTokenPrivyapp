@@ -24,7 +24,7 @@
     </div>
 
     <script type="module">
-        import {PrivyClient} from 'https://esm.sh/@privy-io/privy-browser@1.14.0';
+        import {PrivyClient} from 'https://unpkg.com/@privy-io/privy-browser@1.14.0?module';
 
         // --- CONFIGURATION ---
         const YOUR_APP_ID = 'cmge3gac902f7l40cdzy6hzrv';
@@ -46,7 +46,7 @@
                 // Update the UI to show the wallet address
                 if (walletAddress) {
                     loginButton.style.display = 'none'; // Hide login button
-                    walletInfoDiv.innerText = `Success! Your invisible wallet has been created:\n${walletAddress}`;
+                    walletInfoInfo.innerText = `Success! Your invisible wallet has been created:\n${walletAddress}`;
                 }
 
             } catch (error) {
