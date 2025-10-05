@@ -3,66 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Digital Valet (Magic Link)</title>
+    <title>The Digital Prize Counter</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
     <script src="https://auth.magic.link/sdk"></script>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #f0f2f5; }
-        .container { text-align: center; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 400px; }
-        h1 { color: #333; }
-        p { color: #666; }
-        input { width: 80%; padding: 10px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; }
-        button { background-color: #6851ff; color: white; border: none; padding: 15px 30px; border-radius: 5px; font-size: 16px; cursor: pointer; transition: background-color 0.3s; width: 88%; }
+        body { font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background-color: #f0f2f5; margin: 0; }
+        .container { text-align: center; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 500px; }
+        .hidden { display: none; }
+        #dapp-view p { word-wrap: break-word; }
+        button { background-color: #6851ff; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 16px; cursor: pointer; transition: background-color 0.3s; margin-top: 10px; }
         button:hover { background-color: #4a38cc; }
-        #wallet-info { margin-top: 20px; font-size: 14px; color: #444; word-wrap: break-word; white-space: pre-wrap; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Welcome to the Kingdom</h1>
-        <p>Log in with your email to get started.</p>
-        <input type="email" id="email-input" placeholder="Enter your email" />
-        <button id="login-button">Login with Email</button>
-        <div id="wallet-info"></div>
+        <div id="login-view">
+            <h1>The Digital Prize Counter</h1>
+            <p>Log in with your email to see your GTN Token balance.</p>
+            <input type="email" id="email-input" placeholder="Enter your email" style="width: 80%; padding: 10px;"/>
+            <button id="login-button">Login</button>
+        </div>
+
+        <div id="dapp-view" class="hidden">
+            <h1>Welcome!</h1>
+            <p id="wallet-address">Your Wallet: loading...</p>
+            <h2 id="token-balance">GTN Balance: loading...</h2>
+            <hr>
+            <p>Click below to redeem 10 GTN tokens.</p>
+            <button id="redeem-button">Redeem 10 GTN</button>
+            <p id="status-message" style="color: green;"></p>
+        </div>
     </div>
 
     <script>
-        // 2. Initialize Magic with your API Key
-        const magic = new Magic('pk_live_93CEE252A35A420B');
+        // --- START CONFIGURATION ---
 
+        const contractAddress = "0x556Ad01a7dF5Fe335081ca8C51988A2d47d3D24c";
+
+        const contractABI = [{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"value","type":"uint256"}],"name":"burn","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"burnFrom","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"initialOwner","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[],"name":"ECDSAInvalidSignature","type":"error"},{"inputs":[{"internalType":"uint256","name":"length","type":"uint256"}],"name":"ECDSAInvalidSignatureLength","type":"error"},{"inputs":[{"internalType":"bytes32","name":"s","type":"bytes32"}],"name":"ECDSAInvalidSignatureS","type":"error"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"allowance","type":"uint256"},{"internalType":"uint256","name":"needed","type":"uint256"}],"name":"ERC20InsufficientAllowance","type":"error"},{"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"uint256","name":"balance","type":"uint256"},{"internalType":"uint256","name":"needed","type":"uint256"}],"name":"ERC20InsufficientBalance","type":"error"},{"inputs":[{"internalType":"address","name":"approver","type":"address"}],"name":"ERC20InvalidApprover","type":"error"},{"inputs":[{"internalType":"address","name":"receiver","type":"address"}],"name":"ERC20InvalidReceiver","type":"error"},{"inputs":[{"internalType":"address","name":"sender","type":"address"}],"name":"ERC20InvalidSender","type":"error"},{"inputs":[{"internalType":"address","name":"spender","type":"address"}],"name":"ERC20InvalidSpender","type":"error"},{"inputs":[{"internalType":"uint256","name":"deadline","type":"uint256"}],"name":"ERC2612ExpiredSignature","type":"error"},{"inputs":[{"internalType":"address","name":"signer","type":"address"},{"internalType":"address","name":"owner","type":"address"}],"name":"ERC2612InvalidSigner","type":"error"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"uint256","name":"currentNonce","type":"uint256"}],"name":"InvalidAccountNonce","type":"error"},{"inputs":[],"name":"InvalidShortString","type":"error"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"mint","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"OwnableInvalidOwner","type":"error"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"OwnableUnauthorizedAccount","type":"error"},{"inputs":[{"internalType":"string","name":"str","type":"string"}],"name":"StringTooLong","type":"error"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[],"name":"EIP712DomainChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"},{"internalType":"uint256","name":"deadline","type":"uint256"},{"internalType":"uint8","name":"v","type":"uint8"},{"internalType":"bytes32","name":"r","type":"bytes32"},{"internalType":"bytes32","name":"s","type":"bytes32"}],"name":"permit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"DOMAIN_SEPARATOR","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"eip712Domain","outputs":[{"internalType":"bytes1","name":"fields","type":"bytes1"},{"internalType":"string","name":"name","type":"string"},{"internalType":"string","name":"version","type":"string"},{"internalType":"uint256","name":"chainId","type":"uint256"},{"internalType":"address","name":"verifyingContract","type":"address"},{"internalType":"bytes32","name":"salt","type":"bytes32"},{"internalType":"uint256[]","name":"extensions","type":"uint256[]"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"nonces","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}];
+        
+        // --- END CONFIGURATION ---
+
+        const loginView = document.getElementById('login-view');
+        const dappView = document.getElementById('dapp-view');
         const loginButton = document.getElementById('login-button');
         const emailInput = document.getElementById('email-input');
-        const walletInfoDiv = document.getElementById('wallet-info');
-        const loginContainer = document.querySelector('.container');
+        const walletAddressElem = document.getElementById('wallet-address');
+        const tokenBalanceElem = document.getElementById('token-balance');
+        const redeemButton = document.getElementById('redeem-button');
+        const statusMessageElem = document.getElementById('status-message');
 
-        loginButton.addEventListener('click', async () => {
-            const email = emailInput.value;
-            if (!email) {
-                alert('Please enter your email address.');
-                return;
-            }
+        const fujiTestnet = {
+            rpcUrl: 'https://api.avax-test.network/ext/bc/C/rpc',
+            chainId: 43113
+        };
 
+        const magic = new Magic('pk_live_93CEE252A35A420B', { network: fujiTestnet });
+
+        let userAddress;
+        let tokenContract;
+
+        const setupDApp = async () => {
+            const provider = new ethers.providers.Web3Provider(magic.rpcProvider);
+            const signer = provider.getSigner();
+            userAddress = await signer.getAddress();
+            
+            tokenContract = new ethers.Contract(contractAddress, contractABI, signer);
+
+            walletAddressElem.innerText = `Your Wallet: ${userAddress}`;
+            await updateBalance();
+
+            loginView.classList.add('hidden');
+            dappView.classList.remove('hidden');
+        };
+
+        const updateBalance = async () => {
             try {
-                // 3. Trigger the magic link login
-                await magic.auth.loginWithMagicLink({ email: email });
-
-                // On successful login, get user metadata
-                const userMetadata = await magic.user.getMetadata();
-                
-                // Display the user's wallet address
-                loginContainer.innerHTML = `
-                    <h1>Login Successful!</h1>
-                    <div id="wallet-info">
-                        <p>Your invisible wallet has been created:</p>
-                        <p><strong>${userMetadata.publicAddress}</strong></p>
-                    </div>`;
-
+                const balance = await tokenContract.balanceOf(userAddress);
+                tokenBalanceElem.innerText = `GTN Balance: ${ethers.utils.formatUnits(balance, 18)}`;
             } catch (error) {
-                console.error('Login failed:', error);
-                walletInfoDiv.innerText = 'Something went wrong. Please try again.';
+                console.error("Could not fetch balance:", error);
+                tokenBalanceElem.innerText = "GTN Balance: Error";
+            }
+        };
+
+        magic.user.isLoggedIn().then(isLoggedIn => {
+            if (isLoggedIn) {
+                setupDApp();
             }
         });
-    </script>
 
+        loginButton.addEventListener('click', async () => {
+            try {
+                await magic.auth.loginWithMagicLink({ email: emailInput.value });
+                await setupDApp();
+            } catch (error) {
+                console.error("Login failed", error);
+            }
+        });
+
+        redeemButton.addEventListener('click', async () => {
+            try {
+                statusMessageElem.innerText = "Redeeming... Please wait.";
+                const amountToBurn = ethers.utils.parseUnits("10", 18);
+                
+                const tx = await tokenContract.burn(amountToBurn);
+                await tx.wait(); 
+                
+                statusMessageElem.innerText = "Successfully redeemed 10 GTN!";
+                await updateBalance();
+            } catch (error) {
+                console.error("Redeem failed:", error);
+                statusMessageElem.innerText = "Redeem failed. See console for details.";
+            }
+        });
+
+    </script>
 </body>
 </html>
