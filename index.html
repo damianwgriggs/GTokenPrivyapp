@@ -11,8 +11,9 @@
         .container { text-align: center; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 500px; }
         .hidden { display: none; }
         #dapp-view p { word-wrap: break-word; }
-        button { background-color: #6851ff; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 16px; cursor: pointer; transition: background-color 0.3s; margin-top: 10px; }
+        button { background-color: #6851ff; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 16px; cursor: pointer; transition: background-color: 0.3s; margin-top: 10px; }
         button:hover { background-color: #4a38cc; }
+        #email-address { font-weight: bold; background-color: #eee; padding: 10px; border-radius: 5px; user-select: all; }
     </style>
 </head>
 <body>
@@ -30,9 +31,16 @@
             <p id="wallet-address">Your Wallet: loading...</p>
             <h2 id="token-balance">GTN Balance: loading...</h2>
             <hr>
-            <p>Ready to redeem? Click below to send a request.</p>
-            <button id="redeem-button">Request to Redeem GTN</button>
-            <p id="status-message" style="color: green;"></p>
+            <div id="redeem-section">
+                <p>Ready to redeem? Click below to start your request.</p>
+                <button id="redeem-button">Request to Redeem GTN</button>
+            </div>
+            <div id="instructions-section" class="hidden">
+                <h3>Request Sent!</h3>
+                <p>To finalize your redemption, please send an email to:</p>
+                <p id="email-address">damiangriggs@damiangriggs.com</p>
+                <p>I will contact you shortly to arrange your reward.</p>
+            </div>
         </div>
     </div>
 
@@ -50,8 +58,11 @@
         const emailInput = document.getElementById('email-input');
         const walletAddressElem = document.getElementById('wallet-address');
         const tokenBalanceElem = document.getElementById('token-balance');
+        
+        // New variables for the redeem flow
+        const redeemSection = document.getElementById('redeem-section');
+        const instructionsSection = document.getElementById('instructions-section');
         const redeemButton = document.getElementById('redeem-button');
-        const statusMessageElem = document.getElementById('status-message');
 
         const fujiTestnet = {
             rpcUrl: 'https://api.avax-test.network/ext/bc/C/rpc',
@@ -63,7 +74,6 @@
         let userAddress;
         let tokenContract;
 
-        // The setup function is now back to its original, working state.
         const setupDApp = async () => {
             const provider = new ethers.providers.Web3Provider(magic.rpcProvider);
             const signer = provider.getSigner();
@@ -103,10 +113,14 @@
             }
         });
 
-        // This button now simply opens the user's default email client.
+        // *** THIS IS THE MODIFIED PART ***
+        // It now hides the button and shows a new section with clear instructions.
         redeemButton.addEventListener('click', () => {
-            window.location.href = "mailto:damiangriggs@damiangriggs.com";
-            statusMessageElem.innerText = "Please send the email to start your redemption request!";
+            // Hide the initial redeem button and text
+            redeemSection.classList.add('hidden');
+            
+            // Show the instructions section
+            instructionsSection.classList.remove('hidden');
         });
 
     </script>
