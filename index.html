@@ -11,9 +11,10 @@
         .container { text-align: center; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 500px; }
         .hidden { display: none; }
         #dapp-view p { word-wrap: break-word; }
-        button { background-color: #6851ff; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 16px; cursor: pointer; transition: background-color: 0.3s; margin-top: 10px; }
+        input { width: 80%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; }
+        button { background-color: #6851ff; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 16px; cursor: pointer; transition: background-color 0.3s; margin-top: 10px; }
         button:hover { background-color: #4a38cc; }
-        #email-address { font-weight: bold; background-color: #eee; padding: 10px; border-radius: 5px; user-select: all; }
+        #contact-email { font-weight: bold; color: #333; }
     </style>
 </head>
 <body>
@@ -22,7 +23,7 @@
         <div id="login-view">
             <h1>The Digital Prize Counter</h1>
             <p>Log in with your email to see your GTN Token balance.</p>
-            <input type="email" id="email-input" placeholder="Enter your email" style="width: 80%; padding: 10px;"/>
+            <input type="email" id="email-input" placeholder="Enter your email"/>
             <button id="login-button">Login</button>
         </div>
 
@@ -31,15 +32,13 @@
             <p id="wallet-address">Your Wallet: loading...</p>
             <h2 id="token-balance">GTN Balance: loading...</h2>
             <hr>
+            
             <div id="redeem-section">
-                <p>Ready to redeem? Click below to start your request.</p>
-                <button id="redeem-button">Request to Redeem GTN</button>
-            </div>
-            <div id="instructions-section" class="hidden">
-                <h3>Request Sent!</h3>
-                <p>To finalize your redemption, please send an email to:</p>
-                <p id="email-address">damiangriggs@damiangriggs.com</p>
-                <p>I will contact you shortly to arrange your reward.</p>
+                <p>After receiving approval, enter the amount to redeem below.</p>
+                <p>For questions, contact: <span id="contact-email">damiangriggs@damiangriggs.com</span></p>
+                <input type="number" id="redeem-amount" placeholder="e.g., 100" />
+                <button id="redeem-button">Redeem Now</button>
+                <p id="status-message" style="color: green;"></p>
             </div>
         </div>
     </div>
@@ -58,11 +57,9 @@
         const emailInput = document.getElementById('email-input');
         const walletAddressElem = document.getElementById('wallet-address');
         const tokenBalanceElem = document.getElementById('token-balance');
-        
-        // New variables for the redeem flow
-        const redeemSection = document.getElementById('redeem-section');
-        const instructionsSection = document.getElementById('instructions-section');
         const redeemButton = document.getElementById('redeem-button');
+        const statusMessageElem = document.getElementById('status-message');
+        const redeemAmountInput = document.getElementById('redeem-amount');
 
         const fujiTestnet = {
             rpcUrl: 'https://api.avax-test.network/ext/bc/C/rpc',
@@ -113,14 +110,30 @@
             }
         });
 
-        // *** THIS IS THE MODIFIED PART ***
-        // It now hides the button and shows a new section with clear instructions.
-        redeemButton.addEventListener('click', () => {
-            // Hide the initial redeem button and text
-            redeemSection.classList.add('hidden');
+        // This is now the final, on-chain burn function
+        redeemButton.addEventListener('click', async () => {
+            const amountToRedeemString = redeemAmountInput.value;
             
-            // Show the instructions section
-            instructionsSection.classList.remove('hidden');
+            if (!amountToRedeemString || parseFloat(amountToRedeemString) <= 0) {
+                alert("Please enter a valid amount to redeem.");
+                return;
+            }
+
+            try {
+                statusMessageElem.innerText = "Redeeming... Please wait for confirmation.";
+                const amountToBurn = ethers.utils.parseUnits(amountToRedeemString, 18);
+                
+                const tx = await tokenContract.burn(amountToBurn);
+                
+                statusMessageElem.innerText = "Transaction sent! Waiting for confirmation...";
+                await tx.wait(); 
+                
+                statusMessageElem.innerText = `Successfully redeemed ${amountToRedeemString} GTN!`;
+                await updateBalance(); 
+            } catch (error) {
+                console.error("Redeem failed:", error);
+                statusMessageElem.innerText = "Redeem failed. Check balance or see console for details.";
+            }
         });
 
     </script>
